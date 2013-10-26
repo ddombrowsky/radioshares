@@ -11,6 +11,7 @@
 #include "script.h"
 
 #include <list>
+using namespace std;
 
 class CWallet;
 class CBlock;
@@ -25,7 +26,7 @@ class CNode;
 struct CBlockIndexWorkComparator;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
-static const unsigned int MAX_BLOCK_SIZE = 1000000;
+static const unsigned int MAX_BLOCK_SIZE = 500000;
 /** The maximum size for mined blocks */
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 /** The maximum size for transactions we're willing to relay/mine */
@@ -45,7 +46,7 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** Fake height value used in CCoins to signify they are only in the memory pool (since 0.8) */
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 /** No amount larger than this (in satoshi) is valid */
-static const int64 MAX_MONEY = 21000000 * COIN;
+static const int64 MAX_MONEY = 2000000 * COIN;
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int COINBASE_MATURITY = 100;
@@ -1260,12 +1261,20 @@ class CBlockHeader
 public:
     // header
     static const int CURRENT_VERSION=2;
+    static const int BIRTHDAYS_PER_HASH=3;
+    static const uint32_t MAX_NONCE =  1<<24;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+
+    
+    uint32_t nBirthdayA;
+    uint32_t nBirthdayB;
+
+
 
     CBlockHeader()
     {
@@ -1281,6 +1290,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(nBirthdayA);
+        READWRITE(nBirthdayB);
     )
 
     void SetNull()
@@ -1291,6 +1302,8 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+	nBirthdayA = 0;
+	nBirthdayB = 0;
     }
 
     bool IsNull() const
@@ -1298,7 +1311,7 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetHash() const
+    uint256 GetMidHash() const
     {
         return Hash(BEGIN(nVersion), END(nNonce));
     }
@@ -1307,7 +1320,9 @@ public:
     {
         return (int64)nTime;
     }
-
+	
+    uint256 GetHash() const;
+    uint256 CalculateBestBirthdayHash();
     void UpdateTime(const CBlockIndex* pindexPrev);
 };
 
@@ -1353,6 +1368,9 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.nBirthdayA  = nBirthdayA;
+        block.nBirthdayB  = nBirthdayB;
+	    
         return block;
     }
 
@@ -1466,13 +1484,13 @@ public:
 
     void print() const
     {
-        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu")\n",
+        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", birthdayA=%u, birthdayB=%u)\n",
             GetHash().ToString().c_str(),
             nVersion,
             hashPrevBlock.ToString().c_str(),
             hashMerkleRoot.ToString().c_str(),
             nTime, nBits, nNonce,
-            vtx.size());
+            vtx.size(), nBirthdayA, nBirthdayB);
         for (unsigned int i = 0; i < vtx.size(); i++)
         {
             printf("  ");
@@ -1637,6 +1655,9 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+    
+    uint32_t nBirthdayA;
+    uint32_t nBirthdayB;
 
 
     CBlockIndex()
@@ -1658,6 +1679,8 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+	nBirthdayA = 0;
+	nBirthdayB = 0;
     }
 
     CBlockIndex(CBlockHeader& block)
@@ -1679,6 +1702,8 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
+	nBirthdayA = block.nBirthdayA;
+	nBirthdayB = block.nBirthdayB;    
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -1709,6 +1734,8 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+	block.nBirthdayA = nBirthdayA;
+	block.nBirthdayB = nBirthdayB;   
         return block;
     }
 
@@ -1841,6 +1868,9 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(nBirthdayA);
+        READWRITE(nBirthdayB);
+	
     )
 
     uint256 GetBlockHash() const
@@ -1852,6 +1882,8 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
+	block.nBirthdayA = nBirthdayA;
+	block.nBirthdayB = nBirthdayB;    
         return block.GetHash();
     }
 

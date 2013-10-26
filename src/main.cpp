@@ -31,8 +31,9 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 32);
+uint256 hashGenesisBlock("0x0903a4aa5c869e17da02111e4de861f1df30992d100312d5caa3a67877851f9d");
+uint256 merkleRootGenesisBlock("0xc03737636a327967f80240d85b2685b3ada15798c2f7beb020aaecf96130f635");
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainWork = 0;
@@ -1065,14 +1066,21 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
 {
     int64 nSubsidy = 50 * COIN;
 
-    // Subsidy is cut in half every 210000 blocks, which will occur approximately every 4 years
-    nSubsidy >>= (nHeight / 210000);
-
+    // Subsidy is reduced by 5% every 2016 blocks, which will occur approximately every 1 week
+    int exponent=(nHeight / 2016);
+    for(int i=0;i<exponent;i++){
+        nSubsidy=nSubsidy/20;
+        nSubsidy=nSubsidy*19;
+    }
+    // Subsidy may be a minimum of 0.19012850*COIN
+    // Expected 365.25 * 24 * 12 * 0.19012850 = approx 20,000 coins per year, 1% annual inflation
+    if(nSubsidy<0.19012850*COIN){nSubsidy=0.19012850*COIN;}
+	
     return nSubsidy + nFees;
 }
 
 static const int64 nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
-static const int64 nTargetSpacing = 10 * 60;
+static const int64 nTargetSpacing = 5 * 60; // five minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
@@ -1290,6 +1298,112 @@ void CBlockHeader::UpdateTime(const CBlockIndex* pindexPrev)
     if (fTestNet)
         nBits = GetNextWorkRequired(pindexPrev, this);
 }
+
+uint64_t getBirthdayHash(uint256 midHash, uint32_t nBirthdayA,int bph){
+	//TODO - Adding numbers together here, should be adding strings
+	uint256 midHashInc=midHash+(nBirthdayA/bph)*3;
+	
+	string a = midHashInc.ToString();
+	vector<unsigned char> v(a.begin(), a.end());
+	uint160 multipleBirthdayHashes = Hash160(v);
+	const char *hexstring = multipleBirthdayHashes.GetHex().c_str();
+	char substr[13];
+	memcpy( substr, &hexstring[12*(nBirthdayA%bph)], 12 );
+	substr[12] = '\0';
+	return strtoll(substr, NULL, 16);
+}
+
+uint256 CBlockHeader::GetHash() const
+    {
+	
+	uint256 midHash = GetMidHash();
+	    
+	
+	//printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
+	//printf("GetHash - Birthday A %u hash %llu\n", nBirthdayA, getBirthdayHash(midHash, nBirthdayA,BIRTHDAYS_PER_HASH));
+	//printf("GetHash - Birthday B %u hash %llu\n", nBirthdayB, getBirthdayHash(midHash, nBirthdayB,BIRTHDAYS_PER_HASH));
+	
+        //Check that the birthdays create matching hashes and that that nBirthdayA != nBirthdayB, and that Birthdays are less than max value	    
+	if(nBirthdayA==nBirthdayB || nBirthdayA>MAX_NONCE||nBirthdayB>MAX_NONCE|| getBirthdayHash(midHash, nBirthdayA,BIRTHDAYS_PER_HASH)!=getBirthdayHash(midHash, nBirthdayB,BIRTHDAYS_PER_HASH)){
+		uint256 bigHash=0;
+		bigHash.SetHex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+		return bigHash;
+	}
+	
+        return Hash(BEGIN(nVersion), END(nBirthdayB));
+    }
+
+uint256 CBlockHeader::CalculateBestBirthdayHash() {
+				
+		uint256 midHash = GetMidHash();
+		printf("Try MidHash %s\n", midHash.ToString().c_str());
+		std::map<uint64_t,uint32_t > collisionFinder;
+		//collisionFinder.reserve( MAX_NONCE );
+		
+		uint32_t candidateBirthdayA=0;
+		uint32_t candidateBirthdayB=0;
+		uint256 smallestHashSoFar=0;
+		smallestHashSoFar.SetHex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+		
+		for(uint32_t i=0;i<MAX_NONCE;i=i+BIRTHDAYS_PER_HASH){
+			
+			//TODO - Adding numbers together here, should be adding strings	
+			uint256 midHashInc=midHash+i;
+			
+			string a = midHashInc.ToString();
+			vector<unsigned char> v(a.begin(), a.end());
+			uint160 multipleBirthdayHashes = Hash160(v);
+			
+			
+			//printf("Birthday %u\n", i);
+			//printf("HASH160 %s\n", eightBirthdayHashes.GetHex().c_str());
+			const char *hexstring = multipleBirthdayHashes.GetHex().c_str();
+			char substr[13];
+			
+			for(int j=0;j<BIRTHDAYS_PER_HASH;j++){
+			memcpy( substr, &hexstring[12*j], 12 );
+			substr[12] = '\0';
+			//printf("Substring %s\n", substr);
+			
+			//break eightBirthdayHashes into X possible matches
+			//check hashtable for each match
+			uint64_t theBirthdayHash = strtoll(substr, NULL, 16);
+			//printf("birthday hash %llu\n", theBirthdayHash);
+			
+			if(collisionFinder[theBirthdayHash]!=0){
+				printf("matching birthdays! %u,%u share the birthday %llu\n", collisionFinder[theBirthdayHash],i+j,theBirthdayHash);
+				
+				//if a match exists, calculate the full hash
+				nBirthdayA = collisionFinder[theBirthdayHash];
+				nBirthdayB = i+j;
+				uint256 fullHash=GetHash();
+				printf("hash is %s\n", fullHash.ToString().c_str());
+				
+				//compare against previous best match
+				if(fullHash<smallestHashSoFar){
+					//if better, update candidate birthdays
+					printf("best hash so far for the nonce\n");
+					smallestHashSoFar=fullHash;
+					candidateBirthdayA=collisionFinder[theBirthdayHash];
+					candidateBirthdayB=i+j;
+				}
+			}else{
+				//if no match, store the value in the hashmap.
+				//printf("no match store %llu,%u\n", theBirthdayHash,i);
+				collisionFinder[theBirthdayHash]=i+j;
+			}
+			}
+		}
+		//update birthdays with candidates. - note, there may be no collissions, in which case both birthdays remain at zero, and hash returned is invalid.
+		nBirthdayA = candidateBirthdayA;
+		nBirthdayB = candidateBirthdayB;
+		
+		//Lets put in some placeholder numbers for now
+		//nBirthdayA = GetMidHash().ToString().c_str()[0];
+		//nBirthdayB = GetMidHash().ToString().c_str()[1];
+		
+		return GetHash();
+	}
 
 
 
@@ -2727,6 +2841,7 @@ bool LoadBlockIndex()
 }
 
 
+
 bool InitBlockIndex() {
     // Check whether we're already initialized
     if (pindexGenesisBlock != NULL)
@@ -2747,21 +2862,28 @@ bool InitBlockIndex() {
         //   vMerkleTree: 4a5e1e
 
         // Genesis block
-        const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
+        const char* pszTimestamp = "Cameron throws down gauntlet over future of HS2";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+	    
+	vector<unsigned char> scriptPubKeyAddress = ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
+	uint64 scriptSigInt = 486604799;
+	    
+        txNew.vin[0].scriptSig = CScript() << scriptSigInt << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].nValue = 50 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
+        txNew.vout[0].scriptPubKey = CScript() << scriptPubKeyAddress << OP_CHECKSIG;
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1231006505;
-        block.nBits    = 0x1d00ffff;
-        block.nNonce   = 2083236893;
+        block.nTime    = 1382797238;
+	block.nBits    = 0x21000fff;
+        block.nNonce   = 2083645858;
+        block.nBirthdayA   = 10393383;
+        block.nBirthdayB   = 16712767;
+	
 
         if (fTestNet)
         {
@@ -2774,10 +2896,11 @@ bool InitBlockIndex() {
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
         block.print();
+	
+        assert(block.hashMerkleRoot == merkleRootGenesisBlock);
         assert(hash == hashGenesisBlock);
-
+	
         // Start new block file
         try {
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
@@ -3047,7 +3170,7 @@ bool static AlreadyHave(const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xf9, 0xbe, 0xb4, 0xd9 };
+unsigned char pchMessageStart[4] = { 0xf9, 0xbd, 0xb5, 0xd9 };
 
 
 void static ProcessGetData(CNode* pfrom)
@@ -4560,26 +4683,43 @@ void static BitcoinMiner(CWallet *pwallet)
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
         uint256 hashbuf[2];
         uint256& hash = *alignup<16>(hashbuf);
+	
+	uint256 testHash;
         loop
         {
             unsigned int nHashesDone = 0;
-            unsigned int nNonceFound;
+            unsigned int nNonceFound = (unsigned int) -1;
 
-            // Crypto++ SHA256
-            nNonceFound = ScanHash_CryptoPP(pmidstate, pdata + 64, phash1,
-                                            (char*)&hash, nHashesDone);
-
+       
+		for(int i=0;i<10;i++){
+			pblock->nNonce=pblock->nNonce+1;
+			testHash=pblock->CalculateBestBirthdayHash();
+			nHashesDone++;
+			printf("testHash %s\n", testHash.ToString().c_str());
+			printf("Hash Target %s\n", hashTarget.ToString().c_str());
+		    
+			if(testHash<hashTarget){
+				nNonceFound=pblock->nNonce;
+				printf("Found Hash %s\n", testHash.ToString().c_str());
+				break;
+			}
+		}
+		
             // Check if something found
             if (nNonceFound != (unsigned int) -1)
             {
-                for (unsigned int i = 0; i < sizeof(hash)/4; i++)
-                    ((unsigned int*)&hash)[i] = ByteReverse(((unsigned int*)&hash)[i]);
+                //for (unsigned int i = 0; i < sizeof(hash)/4; i++)
+                //    ((unsigned int*)&hash)[i] = ByteReverse(((unsigned int*)&hash)[i]);
 
-                if (hash <= hashTarget)
+                if (testHash <= hashTarget)
                 {
                     // Found a solution
-                    pblock->nNonce = ByteReverse(nNonceFound);
-                    assert(hash == pblock->GetHash());
+                    //pblock->nNonce = ByteReverse(nNonceFound);
+		
+			printf("hash %s\n", testHash.ToString().c_str());
+			printf("hash2 %s\n", pblock->GetHash().ToString().c_str());
+		    			
+                    assert(testHash == pblock->GetHash());
 
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
                     CheckWork(pblock, *pwalletMain, reservekey);
