@@ -1,6 +1,6 @@
 TEMPLATE = app
-TARGET = bitcoin-qt
-macx:TARGET = "Bitcoin-Qt"
+TARGET = protoshares-qt
+macx:TARGET = "ProtoShares-Qt"
 VERSION = 0.8.5
 INCLUDEPATH += src src/json src/qt
 QT += network

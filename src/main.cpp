@@ -14,6 +14,9 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include "momentum.h"
+#include "momentum.cpp"
+
 
 using namespace std;
 using namespace boost;
@@ -31,7 +34,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x0903a4aa5c869e17da02111e4de861f1df30992d100312d5caa3a67877851f9d");
+uint256 hashGenesisBlock("0x007799d29e56217f6eaf9f392091528c48f84b44967d70be4d768f6dd1ca45bd");
 uint256 merkleRootGenesisBlock("0xc03737636a327967f80240d85b2685b3ada15798c2f7beb020aaecf96130f635");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -65,7 +68,7 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Bitcoin Signed Message:\n";
+const string strMessageMagic = "ProtoShares Signed Message:\n";
 
 double dHashesPerSec = 0.0;
 int64 nHPSTimerStart = 0;
@@ -1139,11 +1142,16 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
         return pindexLast->nBits;
     }
 
-    // Go back by what we want to be 14 days worth of blocks
-    const CBlockIndex* pindexFirst = pindexLast;
-    for (int i = 0; pindexFirst && i < nInterval-1; i++)
-        pindexFirst = pindexFirst->pprev;
-    assert(pindexFirst);
+    //Timewarp bug fix
+        // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
+     int nBlocksBack = nInterval-1;
+    if((pindexLast->nHeight+1) != nInterval)
+        nBlocksBack = nInterval;
+
+     const CBlockIndex* pindexFirst = pindexLast;
+    for (int i = 0; pindexFirst && i < nBlocksBack; i++)
+         pindexFirst = pindexFirst->pprev;
+     assert(pindexFirst); 
 
     // Limit adjustment step
     int64 nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
@@ -1299,121 +1307,46 @@ void CBlockHeader::UpdateTime(const CBlockIndex* pindexPrev)
         nBits = GetNextWorkRequired(pindexPrev, this);
 }
 
-uint64_t getBirthdayHash(uint256 midHash, uint32_t nBirthdayA,int bph){
-	//TODO - Adding numbers together here, should be adding strings
-	uint256 midHashInc=midHash+(nBirthdayA/bph)*3;
-	
-	string a = midHashInc.ToString();
-	vector<unsigned char> v(a.begin(), a.end());
-	uint160 multipleBirthdayHashes = Hash160(v);
-	const char *hexstring = multipleBirthdayHashes.GetHex().c_str();
-	char substr[13];
-	memcpy( substr, &hexstring[12*(nBirthdayA%bph)], 12 );
-	substr[12] = '\0';
-	return strtoll(substr, NULL, 16);
-}
-
 uint256 CBlockHeader::GetHash() const
     {
 	
 	uint256 midHash = GetMidHash();
 	    
-	
 	//printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
-	//printf("GetHash - Birthday A %u hash %llu\n", nBirthdayA, getBirthdayHash(midHash, nBirthdayA,BIRTHDAYS_PER_HASH));
-	//printf("GetHash - Birthday B %u hash %llu\n", nBirthdayB, getBirthdayHash(midHash, nBirthdayB,BIRTHDAYS_PER_HASH));
-	
-        //Check that the birthdays create matching hashes and that that nBirthdayA != nBirthdayB, and that Birthdays are less than max value	    
-	if(nBirthdayA==nBirthdayB || nBirthdayA>MAX_NONCE||nBirthdayB>MAX_NONCE|| getBirthdayHash(midHash, nBirthdayA,BIRTHDAYS_PER_HASH)!=getBirthdayHash(midHash, nBirthdayB,BIRTHDAYS_PER_HASH)){
-		uint256 bigHash=0;
-		bigHash.SetHex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-		return bigHash;
+	//printf("GetHash - Birthday A %u hash \n", nBirthdayA);
+	//printf("GetHash - Birthday B %u hash \n", nBirthdayB);
+
+	if(!bts::momentum_verify( midHash, nBirthdayA, nBirthdayB)){
+		return uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 	}
-	
+	    
         return Hash(BEGIN(nVersion), END(nBirthdayB));
     }
 
 uint256 CBlockHeader::CalculateBestBirthdayHash() {
 				
-		uint256 midHash = GetMidHash();
-		printf("Try MidHash %s\n", midHash.ToString().c_str());
-		std::map<uint64_t,uint32_t > collisionFinder;
-		//collisionFinder.reserve( MAX_NONCE );
-		
+		uint256 midHash = GetMidHash();		
+		std::vector< std::pair<uint32_t,uint32_t> > results =bts::momentum_search( midHash );
 		uint32_t candidateBirthdayA=0;
 		uint32_t candidateBirthdayB=0;
-		uint256 smallestHashSoFar=0;
-		smallestHashSoFar.SetHex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-		
-		for(uint32_t i=0;i<MAX_NONCE;i=i+BIRTHDAYS_PER_HASH){
-			
-			//TODO - Adding numbers together here, should be adding strings	
-			uint256 midHashInc=midHash+i;
-			
-			string a = midHashInc.ToString();
-			vector<unsigned char> v(a.begin(), a.end());
-			uint160 multipleBirthdayHashes = Hash160(v);
-			
-			
-			//printf("Birthday %u\n", i);
-			//printf("HASH160 %s\n", eightBirthdayHashes.GetHex().c_str());
-			const char *hexstring = multipleBirthdayHashes.GetHex().c_str();
-			char substr[13];
-			
-			for(int j=0;j<BIRTHDAYS_PER_HASH;j++){
-			memcpy( substr, &hexstring[12*j], 12 );
-			substr[12] = '\0';
-			//printf("Substring %s\n", substr);
-			
-			//break eightBirthdayHashes into X possible matches
-			//check hashtable for each match
-			uint64_t theBirthdayHash = strtoll(substr, NULL, 16);
-			//printf("birthday hash %llu\n", theBirthdayHash);
-			
-			if(collisionFinder[theBirthdayHash]!=0){
-				printf("matching birthdays! %u,%u share the birthday %llu\n", collisionFinder[theBirthdayHash],i+j,theBirthdayHash);
-				
-				//if a match exists, calculate the full hash
-				nBirthdayA = collisionFinder[theBirthdayHash];
-				nBirthdayB = i+j;
-				uint256 fullHash=GetHash();
-				printf("hash is %s\n", fullHash.ToString().c_str());
-				
-				//compare against previous best match
-				if(fullHash<smallestHashSoFar){
-					//if better, update candidate birthdays
-					printf("best hash so far for the nonce\n");
-					smallestHashSoFar=fullHash;
-					candidateBirthdayA=collisionFinder[theBirthdayHash];
-					candidateBirthdayB=i+j;
-				}
-			}else{
-				//if no match, store the value in the hashmap.
-				//printf("no match store %llu,%u\n", theBirthdayHash,i);
-				collisionFinder[theBirthdayHash]=i+j;
+		uint256 smallestHashSoFar("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+		for (unsigned i=0; i < results.size(); i++) {
+			nBirthdayA = results[i].first;
+			nBirthdayB = results[i].second;
+			uint256 fullHash = Hash(BEGIN(nVersion), END(nBirthdayB));
+			if(fullHash<smallestHashSoFar){
+				//if better, update candidate birthdays
+				//printf("best hash so far for the nonce\n");
+				smallestHashSoFar=fullHash;
+				candidateBirthdayA=results[i].first;
+				candidateBirthdayB=results[i].second;
 			}
-			}
+			nBirthdayA = candidateBirthdayA;
+			nBirthdayB = candidateBirthdayB;
 		}
-		//update birthdays with candidates. - note, there may be no collissions, in which case both birthdays remain at zero, and hash returned is invalid.
-		nBirthdayA = candidateBirthdayA;
-		nBirthdayB = candidateBirthdayB;
-		
-		//Lets put in some placeholder numbers for now
-		//nBirthdayA = GetMidHash().ToString().c_str()[0];
-		//nBirthdayB = GetMidHash().ToString().c_str()[1];
 		
 		return GetHash();
 	}
-
-
-
-
-
-
-
-
-
-
 
 const CTxOut &CTransaction::GetOutputFor(const CTxIn& input, CCoinsViewCache& view)
 {
@@ -1433,6 +1366,7 @@ int64 CTransaction::GetValueIn(CCoinsViewCache& inputs) const
 
     return nResult;
 }
+
 
 unsigned int CTransaction::GetP2SHSigOpCount(CCoinsViewCache& inputs) const
 {
@@ -2880,9 +2814,9 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1382797238;
 	block.nBits    = 0x21000fff;
-        block.nNonce   = 2083645858;
-        block.nBirthdayA   = 10393383;
-        block.nBirthdayB   = 16712767;
+        block.nNonce   = 2083645873;
+        block.nBirthdayA   = 37819102;
+        block.nBirthdayB   = 65201841;
 	
 
         if (fTestNet)
@@ -2897,7 +2831,10 @@ bool InitBlockIndex() {
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
         block.print();
-	
+
+
+
+	//halt program if genesis block not valid
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
         assert(hash == hashGenesisBlock);
 	
@@ -4197,40 +4134,6 @@ void SHA256Transform(void* pstate, void* pinput, const void* pinit)
         ((uint32_t*)pstate)[i] = ctx.h[i];
 }
 
-//
-// ScanHash scans nonces looking for a hash with at least some zero bits.
-// It operates on big endian data.  Caller does the byte reversing.
-// All input buffers are 16-byte aligned.  nNonce is usually preserved
-// between calls, but periodically or if nNonce is 0xffff0000 or above,
-// the block is rebuilt and nNonce starts over at zero.
-//
-unsigned int static ScanHash_CryptoPP(char* pmidstate, char* pdata, char* phash1, char* phash, unsigned int& nHashesDone)
-{
-    unsigned int& nNonce = *(unsigned int*)(pdata + 12);
-    for (;;)
-    {
-        // Crypto++ SHA256
-        // Hash pdata using pmidstate as the starting state into
-        // pre-formatted buffer phash1, then hash phash1 into phash
-        nNonce++;
-        SHA256Transform(phash1, pdata, pmidstate);
-        SHA256Transform(phash, phash1, pSHA256InitState);
-
-        // Return the nonce if the hash has at least some zero bits,
-        // caller will check if it has enough to reach the target
-        if (((unsigned short*)phash)[14] == 0)
-            return nNonce;
-
-        // If nothing found after trying for a while, return -1
-        if ((nNonce & 0xffff) == 0)
-        {
-            nHashesDone = 0xffff+1;
-            return (unsigned int) -1;
-        }
-        if ((nNonce & 0xfff) == 0)
-            boost::this_thread::interruption_point();
-    }
-}
 
 // Some explaining would be appreciated
 class COrphan
@@ -4604,7 +4507,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         return false;
 
     //// debug print
-    printf("BitcoinMiner:\n");
+    printf("ProtoSharesMiner:\n");
     printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
     pblock->print();
     printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
@@ -4613,7 +4516,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
-            return error("BitcoinMiner : generated block is stale");
+            return error("ProtoSharesMiner : generated block is stale");
 
         // Remove key from key pool
         reservekey.KeepKey();
@@ -4627,7 +4530,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         CValidationState state;
         if (!ProcessBlock(state, NULL, pblock))
-            return error("BitcoinMiner : ProcessBlock, block not accepted");
+            return error("ProtoSharesMiner : ProcessBlock, block not accepted");
     }
 
     return true;
@@ -4635,7 +4538,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
 void static BitcoinMiner(CWallet *pwallet)
 {
-    printf("BitcoinMiner started\n");
+    printf("ProtoSharesMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("bitcoin-miner");
 
@@ -4644,7 +4547,7 @@ void static BitcoinMiner(CWallet *pwallet)
     unsigned int nExtraNonce = 0;
 
     try { loop {
-        while (vNodes.empty())
+       // while (vNodes.empty())
             MilliSleep(1000);
 
         //
@@ -4659,7 +4562,7 @@ void static BitcoinMiner(CWallet *pwallet)
         CBlock *pblock = &pblocktemplate->block;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-        printf("Running BitcoinMiner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
+        printf("Running ProtoSharesMiner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
         //
@@ -4681,8 +4584,8 @@ void static BitcoinMiner(CWallet *pwallet)
         //
         int64 nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        uint256 hashbuf[2];
-        uint256& hash = *alignup<16>(hashbuf);
+        //uint256 hashbuf[2];
+        //uint256& hash = *alignup<16>(hashbuf);
 	
 	uint256 testHash;
         loop
@@ -4781,7 +4684,7 @@ void static BitcoinMiner(CWallet *pwallet)
     } }
     catch (boost::thread_interrupted)
     {
-        printf("BitcoinMiner terminated\n");
+        printf("ProtoSharesMiner terminated\n");
         throw;
     }
 }
