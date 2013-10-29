@@ -34,7 +34,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x007799d29e56217f6eaf9f392091528c48f84b44967d70be4d768f6dd1ca45bd");
+uint256 hashGenesisBlock("0x0505bfc4c21299895c2d36f85da54fd8626a9f3ff8fb576ec859bb0ea9ad69a6");
 uint256 merkleRootGenesisBlock("0xc03737636a327967f80240d85b2685b3ada15798c2f7beb020aaecf96130f635");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -2814,9 +2814,9 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1382797238;
 	block.nBits    = 0x21000fff;
-        block.nNonce   = 2083645873;
-        block.nBirthdayA   = 37819102;
-        block.nBirthdayB   = 65201841;
+        block.nNonce   = 2083645886;
+        block.nBirthdayA   = 25559001;
+        block.nBirthdayB   = 45605753;
 	
 
         if (fTestNet)

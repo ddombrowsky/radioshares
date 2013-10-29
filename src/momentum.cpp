@@ -49,7 +49,7 @@ namespace bts
     char  hash_tmp[sizeof(midHash)+4];
     memcpy((char*)&hash_tmp[4], (char*)&midHash, sizeof(midHash) );
     uint32_t* index = (uint32_t*)hash_tmp;
-    *index = a;
+    *index = a-a%BIRTHDAYS_PER_HASH;
 
     uint64_t  result_hash[8];
 		SHA512((unsigned char*)hash_tmp, sizeof(hash_tmp), (unsigned char*)result_hash);
