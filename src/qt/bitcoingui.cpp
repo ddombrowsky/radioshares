@@ -25,6 +25,7 @@
 #include "ui_interface.h"
 #include "wallet.h"
 #include "init.h"
+#include "bitcoinrpc.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -60,6 +61,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     clientModel(0),
     encryptWalletAction(0),
     changePassphraseAction(0),
+    miningOffAction(0),
+    miningOneAction(0),
+    miningTwoAction(0),
+    miningThreeAction(0),
+    miningFourAction(0),
     aboutQtAction(0),
     trayIcon(0),
     notificator(0),
@@ -230,6 +236,23 @@ void BitcoinGUI::createActions()
     backupWalletAction->setStatusTip(tr("Backup wallet to another location"));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
+    
+    miningOffAction = new QAction(QIcon(":/icons/mining"), tr("Switch Mining Off"), this);
+    miningOffAction->setStatusTip(tr("Stop Mining. May take some time to wind down."));
+    miningOffAction->setMenuRole(QAction::PreferencesRole);
+    miningOneAction = new QAction(QIcon(":/icons/mining"), tr("Mine 1 Process (2.5GB Required)"), this);
+    miningOneAction->setStatusTip(tr("Mine ProtoShares with 1 process. 2.5GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningOneAction->setMenuRole(QAction::PreferencesRole);
+    miningTwoAction = new QAction(QIcon(":/icons/mining"), tr("Mine 2 Processes (5.0GB Required)"), this);
+    miningTwoAction->setStatusTip(tr("Mine ProtoShares with 2 processes. 5.0GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningTwoAction->setMenuRole(QAction::PreferencesRole);
+    miningThreeAction = new QAction(QIcon(":/icons/mining"), tr("Mine 3 Processes (7.5GB Required)"), this);
+    miningThreeAction->setStatusTip(tr("Mine ProtoShares with 3 processes. 7.5GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningThreeAction->setMenuRole(QAction::PreferencesRole);
+    miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (10GB Required)"), this);
+    miningFourAction->setStatusTip(tr("Mine ProtoShares with 4 processes. 10GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningFourAction->setMenuRole(QAction::PreferencesRole);
+    
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
     signMessageAction->setStatusTip(tr("Sign messages with your ProtoShares addresses to prove you own them"));
     verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
@@ -246,6 +269,12 @@ void BitcoinGUI::createActions()
     connect(encryptWalletAction, SIGNAL(triggered(bool)), walletFrame, SLOT(encryptWallet(bool)));
     connect(backupWalletAction, SIGNAL(triggered()), walletFrame, SLOT(backupWallet()));
     connect(changePassphraseAction, SIGNAL(triggered()), walletFrame, SLOT(changePassphrase()));
+    connect(miningOffAction, SIGNAL(triggered()), this, SLOT(miningOff()));
+    connect(miningOneAction, SIGNAL(triggered()), this, SLOT(miningOne()));
+    connect(miningTwoAction, SIGNAL(triggered()), this, SLOT(miningTwo()));
+    connect(miningThreeAction, SIGNAL(triggered()), this, SLOT(miningThree()));
+    connect(miningFourAction, SIGNAL(triggered()), this, SLOT(miningFour()));
+    
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
     connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
 }
@@ -271,6 +300,12 @@ void BitcoinGUI::createMenuBar()
     QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
     settings->addAction(encryptWalletAction);
     settings->addAction(changePassphraseAction);
+    settings->addAction(miningOffAction);
+    settings->addAction(miningOneAction);
+    settings->addAction(miningTwoAction);
+    settings->addAction(miningThreeAction);
+    settings->addAction(miningFourAction);
+	
     settings->addSeparator();
     settings->addAction(optionsAction);
 
@@ -816,3 +851,23 @@ void BitcoinGUI::detectShutdown()
     if (ShutdownRequested())
         QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 }
+
+void BitcoinGUI::miningOff()
+{
+mapArgs["-genproclimit"] = "0";
+GenerateBitcoins(true, pwalletMain);
+}
+
+void BitcoinGUI::miningOn(int processes)
+{
+mapArgs["-genproclimit"] = itostr(processes);
+GenerateBitcoins(true, pwalletMain);
+}
+
+void BitcoinGUI::miningOne(){miningOn(1);}
+void BitcoinGUI::miningTwo(){miningOn(2);}
+void BitcoinGUI::miningThree(){miningOn(3);}
+void BitcoinGUI::miningFour(){miningOn(4);}
+
+
+

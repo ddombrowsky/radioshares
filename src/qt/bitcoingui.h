@@ -100,6 +100,12 @@ private:
     QAction *encryptWalletAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
+    QAction *miningOffAction;
+    QAction *miningOneAction;
+    QAction *miningTwoAction;
+    QAction *miningThreeAction;
+    QAction *miningFourAction;
+    
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
 
@@ -193,6 +199,14 @@ private slots:
 
     /** called by a timer to check if fRequestShutdown has been set **/
     void detectShutdown();
+    
+    void miningOff();
+    void miningOn(int processes);
+    void miningOne();
+    void miningTwo();
+    void miningThree();
+    void miningFour();
+
 };
 
 #endif // BITCOINGUI_H
