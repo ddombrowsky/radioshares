@@ -34,8 +34,8 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x0505bfc4c21299895c2d36f85da54fd8626a9f3ff8fb576ec859bb0ea9ad69a6");
-uint256 merkleRootGenesisBlock("0xc03737636a327967f80240d85b2685b3ada15798c2f7beb020aaecf96130f635");
+uint256 hashGenesisBlock("0x0508d38a921dde970c1235df4339ac9312be795c7fffd1e186d882d6f0e5a775");
+uint256 merkleRootGenesisBlock("0x6fa9be1606341d6ea673de9a0f0091d30bccc9203d48380e9005d8d772f2eb6f");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2796,7 +2796,7 @@ bool InitBlockIndex() {
         //   vMerkleTree: 4a5e1e
 
         // Genesis block
-        const char* pszTimestamp = "Cameron throws down gauntlet over future of HS2";
+        const char* pszTimestamp = "Remember, remember, the fifth of November, Gunpowder Treason and Plot";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -2814,9 +2814,9 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1382797238;
 	block.nBits    = 0x21000fff;
-        block.nNonce   = 2083645886;
-        block.nBirthdayA   = 25559001;
-        block.nBirthdayB   = 45605753;
+        block.nNonce   = 2083645889;
+        block.nBirthdayA   = 19954506;
+        block.nBirthdayB   = 57412001;
 	
 
         if (fTestNet)
@@ -2832,7 +2832,27 @@ bool InitBlockIndex() {
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
         block.print();
 
+		if(hash != hashGenesisBlock || block.hashMerkleRoot != merkleRootGenesisBlock){
+		printf("Find hash for genesis block\n");
+		//Compute hashes
+		CBigNum bnTarget;
+		bnTarget.SetCompact(block.nBits);
+		printf("bntarget=%s\n",bnTarget.getuint256().ToString().c_str());	
 
+		do{
+			block.nNonce++;
+			hashGenesisBlock = block.CalculateBestBirthdayHash();
+			printf("hash=%s\n",hashGenesisBlock.ToString().c_str());
+ 		}while(hashGenesisBlock>bnTarget.getuint256());
+		
+		//Print out these values to make it easy to paste when generating a new genesis block
+		block.print();
+        	printf("coinnNonce=%d;\n",block.nNonce);
+		printf("birthdayA=%u;\n",block.nBirthdayA);
+		printf("birthdayB=%u;\n",block.nBirthdayB);
+		printf("verifyHashGenesisBlock=uint256(\"%s\");\n",hashGenesisBlock.ToString().c_str());
+		printf("verifyHashMerkleRoot=uint256(\"%s\");\n",block.BuildMerkleTree().ToString().c_str());
+	}
 
 	//halt program if genesis block not valid
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
@@ -4594,7 +4614,7 @@ void static BitcoinMiner(CWallet *pwallet)
             unsigned int nNonceFound = (unsigned int) -1;
 
        
-		for(int i=0;i<10;i++){
+		for(int i=0;i<1;i++){
 			pblock->nNonce=pblock->nNonce+1;
 			testHash=pblock->CalculateBestBirthdayHash();
 			nHashesDone++;
@@ -4640,14 +4660,14 @@ void static BitcoinMiner(CWallet *pwallet)
             }
             else
                 nHashCounter += nHashesDone;
-            if (GetTimeMillis() - nHPSTimerStart > 4000)
+            if (GetTimeMillis() - nHPSTimerStart > 4000*60)
             {
                 static CCriticalSection cs;
                 {
                     LOCK(cs);
-                    if (GetTimeMillis() - nHPSTimerStart > 4000)
+                    if (GetTimeMillis() - nHPSTimerStart > 4000*60)
                     {
-                        dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
+                        dHashesPerSec = 1000.0 * nHashCounter *60/ (GetTimeMillis() - nHPSTimerStart);
                         nHPSTimerStart = GetTimeMillis();
                         nHashCounter = 0;
                         static int64 nLogTime;
