@@ -2832,27 +2832,7 @@ bool InitBlockIndex() {
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
         block.print();
 
-		if(hash != hashGenesisBlock || block.hashMerkleRoot != merkleRootGenesisBlock){
-		printf("Find hash for genesis block\n");
-		//Compute hashes
-		CBigNum bnTarget;
-		bnTarget.SetCompact(block.nBits);
-		printf("bntarget=%s\n",bnTarget.getuint256().ToString().c_str());	
-
-		do{
-			block.nNonce++;
-			hashGenesisBlock = block.CalculateBestBirthdayHash();
-			printf("hash=%s\n",hashGenesisBlock.ToString().c_str());
- 		}while(hashGenesisBlock>bnTarget.getuint256());
-		
-		//Print out these values to make it easy to paste when generating a new genesis block
-		block.print();
-        	printf("coinnNonce=%d;\n",block.nNonce);
-		printf("birthdayA=%u;\n",block.nBirthdayA);
-		printf("birthdayB=%u;\n",block.nBirthdayB);
-		printf("verifyHashGenesisBlock=uint256(\"%s\");\n",hashGenesisBlock.ToString().c_str());
-		printf("verifyHashMerkleRoot=uint256(\"%s\");\n",block.BuildMerkleTree().ToString().c_str());
-	}
+	
 
 	//halt program if genesis block not valid
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
