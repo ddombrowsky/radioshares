@@ -1,6 +1,7 @@
 #include "momentum.h"
 #include <boost/unordered_map.hpp>
 #include <iostream>
+#include <semiOrderedMap.cpp>
 
 namespace bts 
 {
@@ -10,8 +11,8 @@ namespace bts
 	
 	std::vector< std::pair<uint32_t,uint32_t> > momentum_search( uint256 midHash )
   {
-      boost::unordered_map<uint64_t,uint32_t>  found;
-      found.reserve( MAX_MOMENTUM_NONCE);
+	semiOrderedMap somap;
+	somap.allocate(4);
       std::vector< std::pair<uint32_t,uint32_t> > results;
 
       char  hash_tmp[sizeof(midHash)+4];
@@ -22,21 +23,18 @@ namespace bts
       {
           *index = i;
           uint64_t  result_hash[8];
-			    SHA512((unsigned char*)hash_tmp, sizeof(hash_tmp), (unsigned char*)&result_hash);
+          SHA512((unsigned char*)hash_tmp, sizeof(hash_tmp), (unsigned char*)result_hash);
         
-          for( uint32_t x = 0; x < BIRTHDAYS_PER_HASH; ++x )
+	      
+          for( uint32_t x = 0; x < 8; ++x )
           {
               uint64_t birthday = result_hash[x] >> (64-SEARCH_SPACE_BITS);
               uint32_t nonce = i+x;
-              boost::unordered_map<uint64_t,uint32_t>::const_iterator itr = found.find( birthday );
-              if( itr != found.end() )
-              {
-                  results.push_back( std::make_pair( itr->second, nonce ) );
-                  std::cerr<<"results  "<<itr->second<<"  and "<<nonce <<"  => birthday: "<<birthday<<"\n";
-              }
-              else
-              {
-                  found[birthday] = nonce;
+              //boost::unordered_map<uint64_t,uint32_t>::const_iterator itr = found.find( birthday );
+
+              uint64_t foundMatch=somap.checkAdd( birthday, nonce );
+              if( foundMatch != 0 ){
+                  results.push_back( std::make_pair( foundMatch, nonce ) );
               }
           }
           i += BIRTHDAYS_PER_HASH;
@@ -45,6 +43,7 @@ namespace bts
       {
          assert( momentum_verify( midHash, itr->first, itr->second ) );
       }
+      somap.destroy();
       return results;
    }
 
