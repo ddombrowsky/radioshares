@@ -232,8 +232,11 @@ void WalletView::encryptWallet(bool status)
 
 void WalletView::backupWallet()
 {
-    //QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+    #if QT_VERSION >= 0x050000
     QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    #else
+    QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+    #endif
     QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if (!filename.isEmpty()) {
         if (!walletModel->backupWallet(filename)) {

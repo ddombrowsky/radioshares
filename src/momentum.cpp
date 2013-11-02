@@ -39,10 +39,10 @@ namespace bts
           }
           i += BIRTHDAYS_PER_HASH;
       }
-      for( auto itr = results.begin(); itr != results.end(); ++itr )
-      {
-         assert( momentum_verify( midHash, itr->first, itr->second ) );
-      }
+      //for( auto itr = results.begin(); itr != results.end(); ++itr )
+      //{
+      //   assert( momentum_verify( midHash, itr->first, itr->second ) );
+     // }
       somap.destroy();
       return results;
    }
