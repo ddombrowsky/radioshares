@@ -34,9 +34,9 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x0508d38a921dde970c1235df4339ac9312be795c7fffd1e186d882d6f0e5a775");
+uint256 hashGenesisBlock("0x00079d0e96deaefd08aba9fe3b65b153d29197380b4b138cf84905161b58934f");
 uint256 merkleRootGenesisBlock("0x6fa9be1606341d6ea673de9a0f0091d30bccc9203d48380e9005d8d772f2eb6f");
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 12);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainWork = 0;
@@ -2813,10 +2813,10 @@ bool InitBlockIndex() {
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
         block.nTime    = 1382797238;
-	block.nBits    = 0x21000fff;
-        block.nNonce   = 2083645889;
-        block.nBirthdayA   = 19954506;
-        block.nBirthdayB   = 57412001;
+	block.nBits    = 0x2100000f;
+        block.nNonce   = 2083646345;
+        block.nBirthdayA   = 3965827;
+        block.nBirthdayB   = 37978904;
 	
 
         if (fTestNet)
@@ -4551,7 +4551,7 @@ void static BitcoinMiner(CWallet *pwallet)
     unsigned int nExtraNonce = 0;
 
     try { for(;;) {
-       // while (vNodes.empty())
+        while (vNodes.empty())
             MilliSleep(1000);
 
         //
