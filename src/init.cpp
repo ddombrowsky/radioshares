@@ -148,7 +148,7 @@ void HandleSIGHUP(int)
 //
 // Start
 //
-#if 1//!defined(QT_GUI)
+#if !defined(QT_GUI)
 bool AppInit(int argc, char* argv[])
 {
     boost::thread_group threadGroup;
