@@ -36,7 +36,7 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 uint256 hashGenesisBlock("0x00079d0e96deaefd08aba9fe3b65b153d29197380b4b138cf84905161b58934f");
 uint256 merkleRootGenesisBlock("0x6fa9be1606341d6ea673de9a0f0091d30bccc9203d48380e9005d8d772f2eb6f");
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 12);
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 9);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainWork = 0;
@@ -1072,8 +1072,8 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     // Subsidy is reduced by 5% every 2016 blocks, which will occur approximately every 1 week
     int exponent=(nHeight / 2016);
     for(int i=0;i<exponent;i++){
-        nSubsidy=nSubsidy/20;
         nSubsidy=nSubsidy*19;
+	nSubsidy=nSubsidy/20;
     }
     // Subsidy may be a minimum of 0.19012850*COIN
     // Expected 365.25 * 24 * 12 * 0.19012850 = approx 20,000 coins per year, 1% annual inflation
@@ -1316,7 +1316,7 @@ uint256 CBlockHeader::GetHash() const
 //		printf("GetHash - Birthday A %u hash \n", nBirthdayA);
 //		printf("GetHash - Birthday B %u hash \n", nBirthdayB);
   
-    auto r = Hash(BEGIN(nVersion), END(nBirthdayB));
+    uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
 //    fprintf( stderr, "init hash %s\n", r.ToString().c_str() );
 		if(!bts::momentum_verify( midHash, nBirthdayA, nBirthdayB)){
 			return uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
@@ -2815,7 +2815,7 @@ bool InitBlockIndex() {
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
         block.nTime    = 1382797238;
-	block.nBits    = 0x2100000f;
+	block.nBits    = 0x20007FFF;
         block.nNonce   = 2083646345;
         block.nBirthdayA   = 3965827;
         block.nBirthdayB   = 37978904;
