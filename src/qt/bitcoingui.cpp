@@ -240,17 +240,17 @@ void BitcoinGUI::createActions()
     miningOffAction = new QAction(QIcon(":/icons/mining"), tr("Switch Mining Off"), this);
     miningOffAction->setStatusTip(tr("Stop Mining. May take some time to wind down."));
     miningOffAction->setMenuRole(QAction::PreferencesRole);
-    miningOneAction = new QAction(QIcon(":/icons/mining"), tr("Mine 1 Process (2.5GB Required)"), this);
-    miningOneAction->setStatusTip(tr("Mine ProtoShares with 1 process. 2.5GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningOneAction = new QAction(QIcon(":/icons/mining"), tr("Mine 1 Process (1GB Required)"), this);
+    miningOneAction->setStatusTip(tr("Mine ProtoShares with 1 process. 1GB Required. Program may crash if insufficient memory is available."));
     miningOneAction->setMenuRole(QAction::PreferencesRole);
-    miningTwoAction = new QAction(QIcon(":/icons/mining"), tr("Mine 2 Processes (5.0GB Required)"), this);
-    miningTwoAction->setStatusTip(tr("Mine ProtoShares with 2 processes. 5.0GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningTwoAction = new QAction(QIcon(":/icons/mining"), tr("Mine 2 Processes (1.75GB Required)"), this);
+    miningTwoAction->setStatusTip(tr("Mine ProtoShares with 2 processes. 1.75GB Required. Program may crash if insufficient memory is available."));
     miningTwoAction->setMenuRole(QAction::PreferencesRole);
-    miningThreeAction = new QAction(QIcon(":/icons/mining"), tr("Mine 3 Processes (7.5GB Required)"), this);
-    miningThreeAction->setStatusTip(tr("Mine ProtoShares with 3 processes. 7.5GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningThreeAction = new QAction(QIcon(":/icons/mining"), tr("Mine 3 Processes (2.5GB Required)"), this);
+    miningThreeAction->setStatusTip(tr("Mine ProtoShares with 3 processes. 2.5GB Required. Program may crash if insufficient memory is available."));
     miningThreeAction->setMenuRole(QAction::PreferencesRole);
-    miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (10GB Required)"), this);
-    miningFourAction->setStatusTip(tr("Mine ProtoShares with 4 processes. 10GB Required. Your computer may become unresponsive if insufficient memory is available."));
+    miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (3.25GB Required)"), this);
+    miningFourAction->setStatusTip(tr("Mine ProtoShares with 4 processes. 3.25GB Required. Program may crash if insufficient memory is available."));
     miningFourAction->setMenuRole(QAction::PreferencesRole);
     
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
@@ -304,8 +304,9 @@ void BitcoinGUI::createMenuBar()
     settings->addAction(miningOneAction);
     settings->addAction(miningTwoAction);
     settings->addAction(miningThreeAction);
+#ifndef WIN32
     settings->addAction(miningFourAction);
-	
+#endif	
     settings->addSeparator();
     settings->addAction(optionsAction);
 
