@@ -11,8 +11,8 @@ namespace bts
 	
 	std::vector< std::pair<uint32_t,uint32_t> > momentum_search( uint256 midHash )
   {
-	semiOrderedMap somap;
-	somap.allocate(4);
+			semiOrderedMap somap;
+			somap.allocate(4);
       std::vector< std::pair<uint32_t,uint32_t> > results;
 
       char  hash_tmp[sizeof(midHash)+4];
@@ -48,27 +48,40 @@ namespace bts
    }
 
 
-	uint64_t getBirthdayHash(uint256 midHash, uint32_t a)
+	uint64_t getBirthdayHash(const uint256& midHash, uint32_t a)
   {
-
+    uint32_t index = a - (a%8);
     char  hash_tmp[sizeof(midHash)+4];
-    memcpy(hash_tmp+4, (char*)&midHash, sizeof(midHash) );
-    uint32_t* index = (uint32_t*)hash_tmp;
-    *index = a-a%BIRTHDAYS_PER_HASH;
+  //  std::cerr<<"midHash size:" <<sizeof(midHash)<<"\n";
+    memcpy(&hash_tmp[4], (char*)&midHash, sizeof(midHash) );
+    memcpy(&hash_tmp[0], (char*)&index, sizeof(index) );
 
     uint64_t  result_hash[8];
+//      for( uint32_t i = 0; i < sizeof(hash_tmp); ++i )
+ //     {
+  //       std::cerr<<" "<<uint16_t((((unsigned char*)hash_tmp)[i]));
+   //   }
+//      std::cerr<<"\n";
 		SHA512((unsigned char*)hash_tmp, sizeof(hash_tmp), (unsigned char*)&result_hash);
+//    std::cerr<<"result_hash "<<a<<"  "<<a%8<<"  --- ";
+ //   for( uint32_t i = 0; i < 8; ++i ) std::cerr<<result_hash[i]<<" ";
+  //  std::cerr<<"\n";
 
-    return result_hash[a%BIRTHDAYS_PER_HASH]>>(64-SEARCH_SPACE_BITS);
+    uint64_t r = result_hash[a%BIRTHDAYS_PER_HASH]>>(64-SEARCH_SPACE_BITS);
+  //  std::cerr<<"bdayresult: "<<r<<"\n";
+    return r;
 	}
 
-	bool momentum_verify( uint256 midHash, uint32_t a, uint32_t b ){
-    std::cerr<<"verify  "<<a<<"  and "<<b<<"\n";
-    std::cerr<<"    "<<getBirthdayHash(midHash,a)<<"   "<<getBirthdayHash(midHash,b)<<"\n";
+	bool momentum_verify( uint256 head, uint32_t a, uint32_t b ){
+ //   std::cerr<<"verify  "<<a<<"  and "<<b<<"  mid: "<<head.ToString()<<"\n";
+ //   std::cerr<<"    "<<getBirthdayHash(head,a)<<"   "<<getBirthdayHash(head,b)<<"\n";
 		if( a == b ) return false;
 		if( a > MAX_MOMENTUM_NONCE ) return false;
 		if( b > MAX_MOMENTUM_NONCE ) return false;		
-		return (getBirthdayHash(midHash,a)==getBirthdayHash(midHash,b));
+
+     bool r = (getBirthdayHash(head,a) == getBirthdayHash(head,b));
+  //   std::cerr<< "####### Verified "<<int(r)<<"\n";
+     return r;
 	}
 
 }

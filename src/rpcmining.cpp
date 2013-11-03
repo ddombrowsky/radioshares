@@ -105,15 +105,17 @@ Value getwork(const Array& params, bool fHelp)
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
     static vector<CBlockTemplate*> vNewBlockTemplate;
 
+    //printf( "GETWORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+
+    static unsigned int nTransactionsUpdatedLast;
+    static CBlockIndex* pindexPrev;
+    static int64 nStart;
+    static CBlockTemplate* pblocktemplate;
     if (params.size() == 0)
     {
         // Update block
-        static unsigned int nTransactionsUpdatedLast;
-        static CBlockIndex* pindexPrev;
-        static int64 nStart;
-        static CBlockTemplate* pblocktemplate;
         if (pindexPrev != pindexBest ||
-            (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60))
+            (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 30))
         {
             if (pindexPrev != pindexBest)
             {
@@ -131,6 +133,7 @@ Value getwork(const Array& params, bool fHelp)
             nTransactionsUpdatedLast = nTransactionsUpdated;
             CBlockIndex* pindexPrevNew = pindexBest;
             nStart = GetTime();
+            //fprintf( stderr, "CREATE NEW BLOCK" );
 
             // Create new block
             pblocktemplate = CreateNewBlock(*pMiningKey);
@@ -158,9 +161,14 @@ Value getwork(const Array& params, bool fHelp)
         char pmidstate[32];
         char pdata[128];
         char phash1[64];
-        FormatHashBuffers(pblock, pmidstate, pdata, phash1);
+        //FormatHashBuffers(pblock, pmidstate, pdata, phash1);
 
+        pblock->nBirthdayA = 0;
+        pblock->nBirthdayB = 0;
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+        uint256 initHash = pblock->GetHash();
+      //  fprintf( stderr, "init hash %s\n", initHash.ToString().c_str() );
+        memcpy( pdata, (char*)pblock, 88 );
 
         Object result;
         result.push_back(Pair("data",     HexStr(BEGIN(pdata), END(pdata))));
@@ -171,13 +179,14 @@ Value getwork(const Array& params, bool fHelp)
     {
         // Parse parameters
         vector<unsigned char> vchData = ParseHex(params[0].get_str());
-        if (vchData.size() != 128)
+        if (vchData.size() != 88)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
-        CBlock* pdata = (CBlock*)&vchData[0];
+        CBlock* pdata = (CBlock*)vchData.data();//&vchData[0];
+        uint32_t* noncedata = (uint32_t*)pdata;
 
         // Byte reverse
-        for (int i = 0; i < 128/4; i++)
-            ((unsigned int*)pdata)[i] = ByteReverse(((unsigned int*)pdata)[i]);
+        //for (int i = 0; i < 128/4; i++)
+        //    ((unsigned int*)pdata)[i] = ByteReverse(((unsigned int*)pdata)[i]);
 
         // Get saved block
         if (!mapNewBlock.count(pdata->hashMerkleRoot))
@@ -190,8 +199,23 @@ Value getwork(const Array& params, bool fHelp)
         pblock->nBirthdayB = pdata->nBirthdayB;
         pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
+       // fprintf( stderr, "birthday %d %d %d \n", pblock->nNonce, pblock->nBirthdayA, pblock->nBirthdayB);
+        uint256 posthash = pblock->GetHash();
+       // fprintf( stderr, "post hash %s\n", posthash.ToString().c_str() );
 
-        return CheckWork(pblock, *pwalletMain, *pMiningKey);
+        bool check =  CheckWork(pblock, *pwalletMain, *pMiningKey);
+       // fprintf( stderr, "check %d\n", check );
+        /*
+        if( check ) 
+        {
+            mapNewBlock.clear();
+            BOOST_FOREACH(CBlockTemplate* pblocktemplate, vNewBlockTemplate)
+              delete pblocktemplate;
+            vNewBlockTemplate.clear();
+            pindexPrev = NULL;
+        }
+        */
+        return check;
     }
 }
 
@@ -242,10 +266,10 @@ Value getblocktemplate(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "ProtoShares is downloading blocks...");
 
     // Update block
-    static unsigned int nTransactionsUpdatedLast;
-    static CBlockIndex* pindexPrev;
-    static int64 nStart;
-    static CBlockTemplate* pblocktemplate;
+    static unsigned int nTransactionsUpdatedLast = 0;
+    static CBlockIndex* pindexPrev = 0;
+    static int64 nStart = 0;
+    static CBlockTemplate* pblocktemplate = 0;
     if (pindexPrev != pindexBest ||
         (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {

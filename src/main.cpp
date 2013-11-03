@@ -1312,15 +1312,17 @@ uint256 CBlockHeader::GetHash() const
 
 		uint256 midHash = GetMidHash();
 		    
-		printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
-		printf("GetHash - Birthday A %u hash \n", nBirthdayA);
-		printf("GetHash - Birthday B %u hash \n", nBirthdayB);
+//		printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
+//		printf("GetHash - Birthday A %u hash \n", nBirthdayA);
+//		printf("GetHash - Birthday B %u hash \n", nBirthdayB);
   
+    auto r = Hash(BEGIN(nVersion), END(nBirthdayB));
+//    fprintf( stderr, "init hash %s\n", r.ToString().c_str() );
 		if(!bts::momentum_verify( midHash, nBirthdayA, nBirthdayB)){
 			return uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 		}
   
-    return Hash(BEGIN(nVersion), END(nBirthdayB));
+    return r; //Hash(BEGIN(nVersion), END(nBirthdayB));
 }
 
 uint256 CBlockHeader::CalculateBestBirthdayHash() {
@@ -4531,7 +4533,11 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     if (hash > hashTarget)
+    {
+        fprintf( stderr, "hash %s > %s\n", hash.ToString().c_str(), hashTarget.ToString().c_str() );
         return false;
+    }
+    fprintf( stderr, "hash %s < %s\n", hash.ToString().c_str(), hashTarget.ToString().c_str() );
 
     //// debug print
     printf("ProtoSharesMiner:\n");
