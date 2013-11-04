@@ -239,19 +239,19 @@ void BitcoinGUI::createActions()
     
     miningOffAction = new QAction(QIcon(":/icons/mining"), tr("Switch Mining Off"), this);
     miningOffAction->setStatusTip(tr("Stop Mining. May take some time to wind down."));
-    miningOffAction->setMenuRole(QAction::PreferencesRole);
+   // miningOffAction->setMenuRole(QAction::PreferencesRole);
     miningOneAction = new QAction(QIcon(":/icons/mining"), tr("Mine 1 Process (1GB Required)"), this);
     miningOneAction->setStatusTip(tr("Mine ProtoShares with 1 process. 1GB Required. Program may crash if insufficient memory is available."));
-    miningOneAction->setMenuRole(QAction::PreferencesRole);
+   // miningOneAction->setMenuRole(QAction::PreferencesRole);
     miningTwoAction = new QAction(QIcon(":/icons/mining"), tr("Mine 2 Processes (1.75GB Required)"), this);
     miningTwoAction->setStatusTip(tr("Mine ProtoShares with 2 processes. 1.75GB Required. Program may crash if insufficient memory is available."));
-    miningTwoAction->setMenuRole(QAction::PreferencesRole);
+   // miningTwoAction->setMenuRole(QAction::PreferencesRole);
     miningThreeAction = new QAction(QIcon(":/icons/mining"), tr("Mine 3 Processes (2.5GB Required)"), this);
     miningThreeAction->setStatusTip(tr("Mine ProtoShares with 3 processes. 2.5GB Required. Program may crash if insufficient memory is available."));
-    miningThreeAction->setMenuRole(QAction::PreferencesRole);
+   // miningThreeAction->setMenuRole(QAction::PreferencesRole);
     miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (3.25GB Required)"), this);
     miningFourAction->setStatusTip(tr("Mine ProtoShares with 4 processes. 3.25GB Required. Program may crash if insufficient memory is available."));
-    miningFourAction->setMenuRole(QAction::PreferencesRole);
+   // miningFourAction->setMenuRole(QAction::PreferencesRole);
     
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
     signMessageAction->setStatusTip(tr("Sign messages with your ProtoShares addresses to prove you own them"));
@@ -260,6 +260,8 @@ void BitcoinGUI::createActions()
 
     openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Debug window"), this);
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
+
+    createMenuBar();
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -300,6 +302,7 @@ void BitcoinGUI::createMenuBar()
     QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
     settings->addAction(encryptWalletAction);
     settings->addAction(changePassphraseAction);
+    settings->addSeparator();
     settings->addAction(miningOffAction);
     settings->addAction(miningOneAction);
     settings->addAction(miningTwoAction);
