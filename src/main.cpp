@@ -35,7 +35,7 @@ unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 
-uint256 hashGenesisBlock("0x0030707667047a283a6a972ff49aa7affc1e37fa7115aef4b59d9d3973a76106");
+uint256 hashGenesisBlock("000fdcd47b7e75a46a2aded5f3335c90eb2224e01ab19ec64ffdd1b437d7b8c0");
 uint256 merkleRootGenesisBlock("0x6fa9be1606341d6ea673de9a0f0091d30bccc9203d48380e9005d8d772f2eb6f");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 9);
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -2804,8 +2804,8 @@ bool InitBlockIndex() {
         txNew.vin.resize(1);
         txNew.vout.resize(1);
 	    
-	vector<unsigned char> scriptPubKeyAddress = ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
-	uint64 scriptSigInt = 486604799;
+        vector<unsigned char> scriptPubKeyAddress = ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
+        uint64 scriptSigInt = 486604799;
 	    
         txNew.vin[0].scriptSig = CScript() << scriptSigInt << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].nValue = 50 * COIN;
@@ -2816,10 +2816,7 @@ bool InitBlockIndex() {
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
         block.nTime    = 1383638888;
-	block.nBits    = 0x20007FFF;
-        block.nNonce   = 219085112;
-        block.nBirthdayA   = 7762388;
-        block.nBirthdayB   = 21841086;
+
 	
 
         if (fTestNet)
