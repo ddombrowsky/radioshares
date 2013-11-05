@@ -2817,7 +2817,7 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1383638888;
 	block.nBits    = 0x20007FFF;
-        block.nNonce   = 1;
+        block.nNonce   = 219085112;
         block.nBirthdayA   = 7762388;
         block.nBirthdayB   = 21841086;
 	

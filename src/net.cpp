@@ -300,7 +300,7 @@ bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const cha
     if (!ConnectSocket(addrConnect, hSocket))
         return error("GetMyExternalIP() : connection to %s failed", addrConnect.ToString().c_str());
 
-    send(hSocket, pszGet, strlen(pszGet), MSG_NOSIGNAL);
+    send(hSocket, pszGet, strlen(pszGet), MSG_DONTWAIT/*, MSG_NOSIGNAL*/);
 
     string strLine;
     while (RecvLine(hSocket, strLine))
@@ -710,7 +710,11 @@ void SocketSendData(CNode *pnode)
     while (it != pnode->vSendMsg.end()) {
         const CSerializeData &data = *it;
         assert(data.size() > pnode->nSendOffset);
+#ifdef WIN32
         int nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
+#else
+        int nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_DONTWAIT);
+#endif
         if (nBytes > 0) {
             pnode->nLastSend = GetTime();
             pnode->nSendBytes += nBytes;
@@ -1191,8 +1195,8 @@ void MapPort(bool)
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strMainNetDNSSeed[][2] = {
-    {"the-iland.net", "ps-seed.the-iland.net"},
-    {"180.183.205.118", "ps-seed.the-iland.net"},
+    {"180.183.205.118", "180.183.205.118"},
+    {"64.90.183.137", "64.90.183.137"},
     {NULL, NULL}
 };
 
