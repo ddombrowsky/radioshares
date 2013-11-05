@@ -35,7 +35,7 @@ unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 
-uint256 hashGenesisBlock("000fdcd47b7e75a46a2aded5f3335c90eb2224e01ab19ec64ffdd1b437d7b8c0");
+uint256 hashGenesisBlock("0x000fdcd47b7e75a46a2aded5f3335c90eb2224e01ab19ec64ffdd1b437d7b8c0");
 uint256 merkleRootGenesisBlock("0x6fa9be1606341d6ea673de9a0f0091d30bccc9203d48380e9005d8d772f2eb6f");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 9);
 CBlockIndex* pindexGenesisBlock = NULL;
