@@ -2814,8 +2814,12 @@ bool InitBlockIndex() {
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
-        block.nVersion = 1;
-        block.nTime    = 1383638888;
+        block.nVersion   = 1;
+        block.nTime      = 1383638888;
+        block.nBits      = 0x20000FFF;
+        block.nNonce     = 912733;
+        block.nBirthdayA = 47830158;
+        block.nBirthdayB = 57842266;
 
 	
 
