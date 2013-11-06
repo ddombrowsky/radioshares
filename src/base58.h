@@ -420,7 +420,7 @@ public:
         bool fExpectTestNet = false;
         switch(nVersion)
         {
-            case 128:
+            case 184: // 128+56
                 break;
 
             case 239:
