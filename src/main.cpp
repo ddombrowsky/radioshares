@@ -4709,6 +4709,12 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
     if (nThreads < 0)
         nThreads = boost::thread::hardware_concurrency();
 
+#ifdef WIN32
+    if(nThreads>3){
+        nThreads=3;
+    }
+#endif
+    
     if (minerThreads != NULL)
     {
         minerThreads->interrupt_all();

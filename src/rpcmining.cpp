@@ -53,10 +53,13 @@ Value gethashespersec(const Array& params, bool fHelp)
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "gethashespermin\n"
-            "Returns a recent hashes per second performance measurement while generating.");
+            "Returns a recent hashes per second performance measurement while generating. You may to mine for 4 minutes before this shows a non-zero value.");
 
-    if (GetTimeMillis() - nHPSTimerStart > 8000*60)
-        return (boost::int64_t)0;
+    if (GetTimeMillis() - nHPSTimerStart > 8000*60){
+	    
+        return "No information yet. Wait at least 4 minutes after starting mining for estimate.";
+        //return (boost::int64_t)0;
+    }
     return dHashesPerSec;
 }
 
