@@ -7,17 +7,17 @@ class semiOrderedMap{
 		int bucketSize;
 		//int discards; //This is useful for tracking performance
 	public:
+		~semiOrderedMap(){
+			//printf("BSE:%d Discards:%d",bucketSizeExponent,discards);
+			delete [] indexOfBirthdayHashes;
+			delete [] indexOfBirthdays;
+		}
 		void allocate(int bSE){
 			bucketSizeExponent=bSE;
 			bucketSize=powf(2,bSE);
 			indexOfBirthdayHashes=new uint64_t[67108864];
 			indexOfBirthdays=new uint32_t[67108864];
 			//discards=0;
-		}
-		void destroy(){
-			//printf("BSE:%d Discards:%d",bucketSizeExponent,discards);
-			delete [] indexOfBirthdayHashes;
-			delete [] indexOfBirthdays;
 		}
 		uint32_t checkAdd(uint64_t birthdayHash, uint32_t nonce){
 			uint64_t bucketStart = (birthdayHash >> (24+bucketSizeExponent))*bucketSize;

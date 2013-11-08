@@ -4719,15 +4719,18 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
     {
         minerThreads->interrupt_all();
         delete minerThreads;
+        MilliSleep(1000); //Give the threads some time to shut down, it may take time to de-allocate memory
         minerThreads = NULL;
     }
 
     if (nThreads == 0 || !fGenerate)
         return;
 
-    minerThreads = new boost::thread_group();
-    for (int i = 0; i < nThreads; i++)
-        minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
+    if (minerThreads == NULL){
+        minerThreads = new boost::thread_group();
+        for (int i = 0; i < nThreads; i++)
+            minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
+    }
 }
 
 // Amount compression:

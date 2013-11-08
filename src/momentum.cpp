@@ -21,6 +21,9 @@ namespace bts
 
       for( uint32_t i = 0; i < MAX_MOMENTUM_NONCE;  )
       {
+	      if(i%1048576==0){
+		boost::this_thread::interruption_point();
+	      }
           *index = i;
           uint64_t  result_hash[8];
           SHA512((unsigned char*)hash_tmp, sizeof(hash_tmp), (unsigned char*)result_hash);
@@ -43,7 +46,7 @@ namespace bts
       //{
       //   assert( momentum_verify( midHash, itr->first, itr->second ) );
      // }
-      somap.destroy();
+      //somap.destroy();
       return results;
    }
 
