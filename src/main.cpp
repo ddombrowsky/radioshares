@@ -15,7 +15,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "momentum.h"
-#include "momentum.cpp"
 
 
 using namespace std;
