@@ -1,4 +1,5 @@
 #include <math.h>
+
 class semiOrderedMap{
 	private:
 		uint64_t *indexOfBirthdayHashes;
