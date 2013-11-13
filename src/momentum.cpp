@@ -1,7 +1,7 @@
-#include "momentum.h"
 #include <boost/unordered_map.hpp>
 #include <iostream>
-#include <semiOrderedMap.cpp>
+#include <openssl/sha.h>
+#include "momentum.h"
 
 namespace bts 
 {

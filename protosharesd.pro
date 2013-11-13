@@ -209,7 +209,8 @@ SOURCES +=  \
     src/protocol.cpp \
     src/noui.cpp \
     src/leveldb.cpp \
-    src/txdb.cpp 
+    src/txdb.cpp \
+    src/momentum.cpp
 
 RESOURCES += src/qt/bitcoin.qrc
 

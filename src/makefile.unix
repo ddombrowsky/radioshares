@@ -119,10 +119,12 @@ OBJS= \
     obj/addrman.o \
     obj/crypter.o \
     obj/key.o \
+    obj/momentum.o \
     obj/db.o \
     obj/init.o \
     obj/keystore.o \
     obj/main.o \
+    obj/momentum.o \
     obj/net.o \
     obj/protocol.o \
     obj/bitcoinrpc.o \
