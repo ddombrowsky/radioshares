@@ -118,8 +118,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     labelBlocksIcon = new QLabel();
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelEncryptionIcon);
-    frameBlocksLayout->addStretch();
-    frameBlocksLayout->addWidget(labelMiningIcon);
+    //frameBlocksLayout->addStretch();
+    //frameBlocksLayout->addWidget(labelMiningIcon);
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelConnectionsIcon);
     frameBlocksLayout->addStretch();
@@ -305,6 +305,7 @@ void BitcoinGUI::createMenuBar()
     QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
     settings->addAction(encryptWalletAction);
     settings->addAction(changePassphraseAction);
+/*
     settings->addSeparator();
     settings->addAction(miningOffAction);
     settings->addAction(miningOneAction);
@@ -312,7 +313,8 @@ void BitcoinGUI::createMenuBar()
     settings->addAction(miningThreeAction);
 #ifndef WIN32
     settings->addAction(miningFourAction);
-#endif	
+#endif
+*/
     settings->addSeparator();
     settings->addAction(optionsAction);
 
