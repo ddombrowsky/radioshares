@@ -1,9 +1,9 @@
-Building ProtoShares
+Building RadioShares
 
-See doc/readme-qt.rst for instructions on building ProtoShares-Qt,
+See doc/readme-qt.rst for instructions on building RadioShares-Qt,
 the intended-for-end-users, nice-graphical-interface, reference
-implementation of ProtoShares.
+implementation of RadioShares.
 
 See doc/build-*.txt for instructions on building bitcoind,
 the intended-for-services, no-graphical-interface, reference
-implementation of ProtoShares.
+implementation of RadioShares.

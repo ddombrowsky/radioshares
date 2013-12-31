@@ -1,6 +1,6 @@
 TEMPLATE = app
-TARGET = protosharesd
-#macx:TARGET = "ProtoShares-Qt"
+TARGET = radiosharesd
+#macx:TARGET = "RadioShares-Qt"
 VERSION = 0.8.5
 INCLUDEPATH += src src/json 
 QT += network 

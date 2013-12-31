@@ -20,14 +20,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "ProtoShares"
-            VALUE "FileDescription",    "ProtoShares-Qt (OSS GUI client for Bitcoin)"
+            VALUE "CompanyName",        "RadioShares"
+            VALUE "FileDescription",    "RadioShares-Qt (OSS GUI client for Bitcoin)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "protoshares-qt"
+            VALUE "InternalName",       "radioshares-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "protoshares-qt.exe"
-            VALUE "ProductName",        "ProtoShares-Qt"
+            VALUE "OriginalFilename",   "radioshares-qt.exe"
+            VALUE "ProductName",        "RadioShares-Qt"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

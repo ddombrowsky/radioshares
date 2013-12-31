@@ -45,9 +45,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("ProtoShares");
-    case mBTC: return QString("Milli-ProtoShares (1 / 1,000)");
-    case uBTC: return QString("Micro-ProtoShares (1 / 1,000,000)");
+    case BTC: return QString("RadioShares");
+    case mBTC: return QString("Milli-RadioShares (1 / 1,000)");
+    case uBTC: return QString("Micro-RadioShares (1 / 1,000,000)");
     default: return QString("???");
     }
 }

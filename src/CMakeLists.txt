@@ -46,21 +46,21 @@ include_directories(${BDB_INCLUDE}
                     "leveldb/include"
                     "leveldb/helpers"
                     )
-add_library(protoshares ${DAEMON_SOURCES})
-target_link_libraries(protoshares leveldb
+add_library(radioshares ${DAEMON_SOURCES})
+target_link_libraries(radioshares leveldb
 		${CMAKE_THREAD_LIBS_INIT}
 		${BDB_LIBRARY}
 		${Boost_LIBRARIES}
 		${OPENSSL_LIBRARIES}
 		)
-add_executable(protosharesd main.cpp)
-target_link_libraries(protosharesd protoshares)
+add_executable(radiosharesd main.cpp)
+target_link_libraries(radiosharesd radioshares)
 
 if(BUILD_QT)
     	add_subdirectory( qt )
 else(BUILD_QT)
-	add_executable(protosharesd main.cpp)
-	target_link_libraries(protosharesd protoshares)
+	add_executable(radiosharesd main.cpp)
+	target_link_libraries(radiosharesd radioshares)
 endif(BUILD_QT)
 
 #add_subdirectory(test)
