@@ -54,8 +54,6 @@ bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 
-int DIFFICULTYADJUSTMENTBLOCKHEIGHTFORK = 12000; //first difference should kick in at 2016*6
-
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64 CTransaction::nMinTxFee = 1000000;  // Override with -mintxfee
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
@@ -1161,18 +1159,6 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
     // Limit adjustment step
     int64 nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
     printf("  nActualTimespan = %"PRI64d"  before bounds\n", nActualTimespan);
-    
-    if(pindexLast->nHeight+1<DIFFICULTYADJUSTMENTBLOCKHEIGHTFORK){
-	//For blocks before targetting re-adjustment
-	if (nActualTimespan < nTargetTimespan/4){
-		nActualTimespan = nTargetTimespan/4;
-	}
-    }else{
-	//For blocks after targetting re-adjustment
-	if (nActualTimespan < nTargetTimespan/32){
-		nActualTimespan = nTargetTimespan/32;
-	}
-    }
     
     if (nActualTimespan > nTargetTimespan*4)
         nActualTimespan = nTargetTimespan*4;
