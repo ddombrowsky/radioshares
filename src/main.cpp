@@ -1,5 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2013 6th Street Radio LLC
+//
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -2814,7 +2816,10 @@ bool InitBlockIndex() {
         //   vMerkleTree: 4a5e1e
 
         // Genesis block
-        const char* pszTimestamp = "Remember, remember, the fifth of November, Gunpowder Treason and Plot";
+        const char* pszTimestamp =
+            "Are we enjoying the HISTORIC FREEZE: WINDCHILLS "
+            "70 BELOW ZERO? on the Fourth of January"
+        ;
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -2830,7 +2835,7 @@ bool InitBlockIndex() {
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion   = 1;
-        block.nTime      = 1383638888;
+        block.nTime      = 1388884400; // epoch for genesis, main net
         block.nBits      = 0x20000FFF;
         block.nNonce     = 912733;
         block.nBirthdayA = 47830158;
@@ -2840,8 +2845,8 @@ bool InitBlockIndex() {
 
         if (fTestNet)
         {
-            block.nTime    = 1296688602;
-            block.nNonce   = 414098458;
+            block.nTime    = 999999;             //test net not supported
+            block.nNonce   = 999999;
         }
 
         //// debug print
@@ -2849,12 +2854,19 @@ bool InitBlockIndex() {
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
         printf("MROOT: %s\n", block.hashMerkleRoot.ToString().c_str());
+
+        assert(block.hashMerkleRoot == merkleRootGenesisBlock);
+
+        // If genesis block hash does not match, then generate new genesis hash.
+        if (false && block.GetHash() != hashGenesisBlock)
+        {
+            // TODO: the code for genesis block generation
+            // is missing in protoshares source!
+        }
+
         block.print();
 
-
-
 	  //halt program if genesis block not valid
-        assert(block.hashMerkleRoot == merkleRootGenesisBlock);
         assert(hash == hashGenesisBlock);
 	
         // Start new block file
