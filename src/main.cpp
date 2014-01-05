@@ -37,7 +37,7 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 
 uint256 hashGenesisBlock("0x000fdcd47b7e75a46a2aded5f3335c90eb2224e01ab19ec64ffdd1b437d7b8c0");
-uint256 merkleRootGenesisBlock("0x6fa9be1606341d6ea673de9a0f0091d30bccc9203d48380e9005d8d772f2eb6f");
+uint256 merkleRootGenesisBlock("0x45e04ba3b0f68264624b4c990aa27efa2991ea9024ea160ca283fa006df6f25d");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 9);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1328,9 +1328,9 @@ uint256 CBlockHeader::GetHash() const
 
 		uint256 midHash = GetMidHash();
 		    
-//		printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
-//		printf("GetHash - Birthday A %u hash \n", nBirthdayA);
-//		printf("GetHash - Birthday B %u hash \n", nBirthdayB);
+		printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
+		printf("GetHash - Birthday A %u hash \n", nBirthdayA);
+		printf("GetHash - Birthday B %u hash \n", nBirthdayB);
   
     uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
 //    fprintf( stderr, "init hash %s\n", r.ToString().c_str() );
@@ -2796,7 +2796,8 @@ bool LoadBlockIndex()
 
 
 
-bool InitBlockIndex() {
+bool InitBlockIndex() 
+{
     // Check whether we're already initialized
     if (pindexGenesisBlock != NULL)
         return true;
@@ -2806,7 +2807,8 @@ bool InitBlockIndex() {
     pblocktree->WriteFlag("txindex", fTxIndex);
     printf("Initializing databases...\n");
 
-    // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
+    // Only add the genesis block if not reindexing (in which case we
+    // reuse the one already on disk)
     if (!fReindex) {
         // Genesis Block:
         // CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1231006505, nBits=1d00ffff, nNonce=2083236893, vtx=1)
@@ -2854,19 +2856,41 @@ bool InitBlockIndex() {
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
         printf("MROOT: %s\n", block.hashMerkleRoot.ToString().c_str());
-
-        assert(block.hashMerkleRoot == merkleRootGenesisBlock);
-
-        // If genesis block hash does not match, then generate new genesis hash.
-        if (false && block.GetHash() != hashGenesisBlock)
-        {
-            // TODO: the code for genesis block generation
-            // is missing in protoshares source!
-        }
-
         block.print();
 
+        // If genesis block hash does not match, then generate new genesis hash.
+        if (false && ((hash != hashGenesisBlock) ||
+            block.hashMerkleRoot != merkleRootGenesisBlock))
+        {
+            printf("Find hash for genesis block\n");
+            // Compute hashes
+            CBigNum bnTarget;
+            bnTarget.SetCompact(block.nBits);
+            printf("bntarget = %s\n", bnTarget.getuint256().ToString().c_str());
+
+            do {
+                int collisions;
+                block.nNonce++;
+                hashGenesisBlock = block.CalculateBestBirthdayHash(collisions);
+                printf("collisions = %d\n", collisions);
+                printf("hash = %s\n", hashGenesisBlock.ToString().c_str());
+            } while(hashGenesisBlock > bnTarget.getuint256());
+
+            // Print out these values to make it easy to paste when
+            // generating a new genesis block
+            block.print();
+            printf("coinnNonce = %d;\n",block.nNonce);
+            printf("birthdayA = %u;\n",block.nBirthdayA);
+            printf("birthdayB = %u;\n",block.nBirthdayB);
+            printf("verifyHashGenesisBlock = uint256(\"%s\");\n",
+                   hashGenesisBlock.ToString().c_str());
+            printf("verifyHashMerkleRoot = uint256(\"%s\");\n",
+                   block.BuildMerkleTree().ToString().c_str());
+        }
+
+
 	  //halt program if genesis block not valid
+        assert(block.hashMerkleRoot == merkleRootGenesisBlock);
         assert(hash == hashGenesisBlock);
 	
         // Start new block file
