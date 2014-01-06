@@ -36,7 +36,7 @@ unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 
-uint256 hashGenesisBlock("0x000fdcd47b7e75a46a2aded5f3335c90eb2224e01ab19ec64ffdd1b437d7b8c0");
+uint256 hashGenesisBlock("0x0060bae6635a7fd126a9c4f63a30c152dde9cfc0d3d6be51a68fb55e8d577679");
 uint256 merkleRootGenesisBlock("0x45e04ba3b0f68264624b4c990aa27efa2991ea9024ea160ca283fa006df6f25d");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 9);
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -2797,11 +2797,11 @@ bool InitBlockIndex()
     // reuse the one already on disk)
     if (!fReindex) {
         // Genesis Block:
-        // CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1231006505, nBits=1d00ffff, nNonce=2083236893, vtx=1)
-        //   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-        //     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73)
-        //     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
-        //   vMerkleTree: 4a5e1e
+        // CBlock(hash=0060bae6635a7fd126a9c4f63a30c152dde9cfc0d3d6be51a68fb55e8d577679, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=45e04ba3b0f68264624b4c990aa27efa2991ea9024ea160ca283fa006df6f25d, nTime=1388884400, nBits=2001ffff, nNonce=912769, vtx=1, birthdayA=15635552, birthdayB=27053096)
+        //   CTransaction(hash=45e04ba3b0f68264624b4c990aa27efa2991ea9024ea160ca283fa006df6f25d, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+        //     CTxIn(COutPoint(0000000000000000000000000000000000000000000000000000000000000000, 4294967295), coinbase 04ffff001d01044c5741726520776520656e6a6f79696e672074686520484953544f52494320465245455a453a2057494e444348494c4c532037302042454c4f57205a45524f3f206f6e2074686520466f75727468206f66204a616e75617279)
+        //     CTxOut(nValue=50.00000000, scriptPubKey=04678afdb0fe5548271967f1a67130)
+        //   vMerkleTree: 45e04ba3b0f68264624b4c990aa27efa2991ea9024ea160ca283fa006df6f25d
 
         // Genesis block
         const char* pszTimestamp =
@@ -2824,10 +2824,10 @@ bool InitBlockIndex()
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion   = 1;
         block.nTime      = 1388884400; // epoch for genesis, main net
-        block.nBits      = 0x20000FFF;
-        block.nNonce     = 912733;
-        block.nBirthdayA = 47830158;
-        block.nBirthdayB = 57842266;
+        block.nBits      = 0x2001FFFF;
+        block.nNonce     = 912769;
+        block.nBirthdayA = 15635552;
+        block.nBirthdayB = 27053096;
 
 	
 
