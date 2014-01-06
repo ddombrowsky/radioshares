@@ -38,7 +38,7 @@ map<uint256, CBlockIndex*> mapBlockIndex;
 
 uint256 hashGenesisBlock("0x0060bae6635a7fd126a9c4f63a30c152dde9cfc0d3d6be51a68fb55e8d577679");
 uint256 merkleRootGenesisBlock("0x45e04ba3b0f68264624b4c990aa27efa2991ea9024ea160ca283fa006df6f25d");
-static CBigNum bnProofOfWorkLimit(~uint256(0) >> 9);
+static CBigNum bnProofOfWorkLimit(~uint256(0) >> 7);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainWork = 0;
@@ -1070,22 +1070,12 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 50 * COIN;
+    int64 nSubsidy = 740 * COIN;
 
-    // Subsidy is reduced by 5% every 2016 blocks, which will occur approximately every 1 week
-    int exponent=(nHeight / 2016);
-    for(int i=0;i<exponent;i++){
-        nSubsidy=nSubsidy*19;
-	nSubsidy=nSubsidy/20;
-    }
-    // Subsidy may be a minimum of 0.19012850*COIN
-    // Expected 365.25 * 24 * 12 * 0.19012850 = approx 20,000 coins per year, 1% annual inflation
-    if(nSubsidy<0.19012850*COIN){nSubsidy=0.19012850*COIN;}
-	
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+static const int64 nTargetTimespan = 60 * 60; // 1 hour
 static const int64 nTargetSpacing = 5 * 60; // five minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
