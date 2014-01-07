@@ -1136,20 +1136,20 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
     }
 
     //Timewarp bug fix
-        // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
-     int nBlocksBack = nInterval-1;
+    // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
+    int nBlocksBack = nInterval-1;
     if((pindexLast->nHeight+1) != nInterval)
         nBlocksBack = nInterval;
 
-     const CBlockIndex* pindexFirst = pindexLast;
+    const CBlockIndex* pindexFirst = pindexLast;
     for (int i = 0; pindexFirst && i < nBlocksBack; i++)
-         pindexFirst = pindexFirst->pprev;
-     assert(pindexFirst); 
+        pindexFirst = pindexFirst->pprev;
+    assert(pindexFirst);
 
     // Limit adjustment step
     int64 nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
-    printf("  nActualTimespan = %"PRI64d"  before bounds\n", nActualTimespan);
-    
+    printf(" nActualTimespan = %"PRI64d" before bounds\n", nActualTimespan);
+
     if (nActualTimespan > nTargetTimespan*4)
         nActualTimespan = nTargetTimespan*4;
 
@@ -1164,9 +1164,9 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
 
     /// debug print
     printf("GetNextWorkRequired RETARGET\n");
-    printf("nTargetTimespan = %"PRI64d"    nActualTimespan = %"PRI64d"\n", nTargetTimespan, nActualTimespan);
-    printf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
-    printf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
+    printf("nTargetTimespan = %"PRI64d" nActualTimespan = %"PRI64d"\n", nTargetTimespan, nActualTimespan);
+    printf("Before: %08x %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
+    printf("After: %08x %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
 
     return bnNew.GetCompact();
 }
