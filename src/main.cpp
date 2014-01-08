@@ -2802,8 +2802,8 @@ bool InitBlockIndex()
         txNew.vin.resize(1);
         txNew.vout.resize(1);
 	    
-        vector<unsigned char> scriptPubKeyAddress = ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
-        uint64 scriptSigInt = 486604799;
+        vector<unsigned char> scriptPubKeyAddress = ParseHex("2103b2ae5b654744abbb1d18155e99b69f18a81fe920f0b257f6074d2e92500aa0f2ac");
+        uint64 scriptSigInt = 4294967295;
 	    
         txNew.vin[0].scriptSig = CScript() << scriptSigInt << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].nValue = 50 * COIN;
