@@ -1068,9 +1068,17 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
     return pblock->GetHash();
 }
 
+#define BLOCK_REWARD 740
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 740 * COIN;
+    int64 nSubsidy;
+
+    // Total shares is 35m.  After that, nothing.
+    if(nHeight > (35000000 / BLOCK_REWARD)){
+        nSubsidy = 0;
+    }else{
+        nSubsidy = 740 * COIN;
+    }
 
     return nSubsidy + nFees;
 }
